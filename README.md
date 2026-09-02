@@ -1,4 +1,4 @@
-# VIX Futures PCA Analysis
+# VIX Curve Relative Value (Level-Neutral)
 
 > [!NOTE]
 > **This is the public showcase repository.** To request access to the private, full-source repository, please email [laurent.lanteigne@gmail.com](mailto:laurent.lanteigne@gmail.com).
@@ -6,27 +6,34 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A quantitative research tool for analyzing the Principal Components of the VIX Futures term structure. This project processes CFE (CBOE Futures Exchange) data to construct constant-maturity VIX curves and extracts the primary drivers of volatility surface movements (Level, Slope, Curvature).
+Short the 30-day constant-maturity VIX future against a minimum-norm long basket across
+60-180 days, weighted orthogonal to the curve's level factor (~97% of variance);
+re-derived every five sessions; always on. The harvest is the curve's SHAPE premium —
+roll-down and curvature — not a vol-direction bet.
 
-## 📊 Strategy Logic
+## The card (2016-05 -> 2025-11, in-sample)
 
-The VIX futures curve is highly correlated. This project uses **Principal Component Analysis (PCA)** to decompose the returns of the term structure into orthogonal factors:
-1.  **PC1 (Level):** ~90-98% of variance (Parallel shifts in volatility).
-2.  **PC2 (Slope):** ~1-7% of variance (Changes in Contango/Backwardation).
-3.  **PC3 (Curvature):** ~0-3% of variance (Butterfly shifts).
+| | |
+|---|---|
+| Sharpe (base book) | **1.56** (ann ~31% at ~20% vol) |
+| skew / kurtosis | +0.9 / 31 — positive skew: higher-moment adjustments barely dent it |
+| crash behavior | profitable through 2018, 2020, Aug-2024, Apr-2025 |
+| the failure mode | low-VIX steep-contango grinds: -31% over 2016-12 -> 2018-05 |
+| costs (assumption tiers) | net ~1.45 / 1.29 / 1.04 across spread tiers |
 
-Understanding these factors allows for better hedging and "Curve Trading" (e.g., betting on the slope steepening without taking direction risk).
+A previously advertised sizing overlay was retired after an alignment repair (its edge
+was an artifact); the base book is the card. Carry attribution on the tradable weights:
+carry is ~3.3x the total P&L with shape shocks dragging the difference.
 
-## 🛠️ Installationn
+## What's here
 
-This project uses modern packaging with `uv`.
+- `strategy_results.ipynb` — executed results: performance, the carry-vs-shock
+  attribution, and a bootstrap luck check (luck band + zero-edge null). Reproduces
+  from the small series in `data/`.
 
-```bash
-git clone [https://github.com/lanteignel93/vix_pca_futures_trade](https://github.com/lanteignel93/vix_pca_futures_trade)
-cd vix_pca_futures_trade
+## What stays private
 
-uv sync
+The weight construction and window provenance, the rejected-knob research (vol
+targeting, carry sizing, state machines), cost/capacity studies.
 
-source .venv/bin/activate
-
-pre-commit install
+*Enough to evaluate the strategy; not enough to replicate it.*
